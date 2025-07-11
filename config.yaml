@@ -1,0 +1,10 @@
+name: "Hobor"
+description: "CBOR to Rest translation layer for TinyGo"
+version: "0.0.1"
+slug: "hobor"
+init: false
+arch:
+  - aarch64
+  - amd64
+ports:
+  9007/tcp: 9007
