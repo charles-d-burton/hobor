@@ -1,6 +1,6 @@
 name: "Hobor"
 description: "CBOR to Rest translation layer for TinyGo"
-version: "0.0.1"
+version: "0.0.3"
 slug: "hobor"
 init: false
 arch:
@@ -8,3 +8,4 @@ arch:
   - amd64
 ports:
   9007/tcp: 9007
+homeassistant_api: true

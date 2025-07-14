@@ -5,4 +5,8 @@ RUN apk add --no-cache go
 
 WORKDIR /data
 
-COPY . /
+COPY ./ .
+
+RUN go build -o /hobor
+
+ENTRYPOINT ["/hobor"]
