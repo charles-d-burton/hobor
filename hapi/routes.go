@@ -5,6 +5,10 @@ const (
 	API = `/api/`
 )
 
+// type Message interface {
+// 	GetAPIMessage
+// }
+
 const (
 	// GET routes
 	GetConfig   = API + `config`

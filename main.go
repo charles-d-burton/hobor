@@ -51,7 +51,10 @@ func main() {
 		if err != nil {
 			slog.Error("unable to createe http request", "error", err)
 		}
-		req.Header = r.Header
+		// req.Header = r.Header
+		req.Header.Add("Content-Type", "application/json")
+		req.Header.Add("Authorization", "Bearer "+os.Getenv("SUPERVISOR_TOKEN"))
+		slog.Info("headers", "header", req.Header)
 		res, err := client.Do(req)
 		if err != nil {
 			// TOOD: better error handling
@@ -59,12 +62,18 @@ func main() {
 			return
 		}
 		defer res.Body.Close()
-		var hapiResponse hapi.GetAPIMessage
 		data, err := io.ReadAll(res.Body)
 		if err != nil {
 			slog.Error("error reading response body", "error", err)
 			return
 		}
+
+		if res.StatusCode != http.StatusOK {
+			http.Error(w, string(data), res.StatusCode)
+			return
+		}
+		slog.Info("message body", "body", string(data))
+		var hapiResponse hapi.GetAPIMessage
 		err = json.Unmarshal(data, &hapiResponse)
 		if err != nil {
 			slog.Error("unable to unmarshal response to API", "error", err)

@@ -1,6 +1,6 @@
 name: "Hobor"
 description: "CBOR to Rest translation layer for TinyGo"
-version: "0.0.3"
+version: "0.0.4"
 slug: "hobor"
 init: false
 arch:
