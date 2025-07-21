@@ -9,9 +9,10 @@ import (
 )
 
 const (
-	Header = "content-size"
-	// Delimiter = `\r\n\r\n`
-	hsize = len(Header) + 4
+	Header     = "content-size"
+	Delimiter  = `\r\n\r\n`
+	hsize      = len(Header) + 4
+	bufferSize = 4096
 )
 
 // type message struct{}
@@ -28,29 +29,35 @@ func NewHoborConn(conn io.ReadWriteCloser) (*HoborConn, error) {
 	return nil, errors.New("connection not set")
 }
 
+// ReadMessage reads the data from the connection in.
+// Probably needs some thought around message size limitations
 func (hb *HoborConn) ReadMessage() ([]byte, error) {
-	header := make([]byte, hsize)
+	buffer := make([]byte, bufferSize)
 	// not tracking how many bytes read since it is fixed
-	_, err := hb.conn.Read(header)
+	_, err := hb.conn.Read(buffer)
 	if err != nil {
 		return nil, err
 	}
-	hvals := bytes.Split(header, []byte(":"))
-	if string(hvals[0]) != Header {
+	headerAndData := bytes.Split(buffer, []byte(Delimiter))
+	headerAndValue := bytes.Split(headerAndData[0], []byte(":"))
+	if string(headerAndValue[0]) != Header || !(len(headerAndValue[1]) > 0) {
 		return nil, errors.New("content size not sent in message")
 	}
-	size, err := strconv.Atoi(string(hvals[1]))
+	size, err := strconv.Atoi(string(headerAndValue[1]))
 	if err != nil {
 		return nil, err
 	}
+	size = size - len(headerAndData[1])
 	data := make([]byte, size)
 	_, err = hb.conn.Read(data)
 	if err != nil {
 		return nil, err
 	}
-	return data, nil
+	return append(headerAndData[1], data...), nil
 }
 
+// WriteMessage writes a heeader with the calculated message size
+// and then the corresponding data
 func (hb *HoborConn) WriteMessage(msg []byte) error {
 	size := strconv.Itoa(len(msg))
 	header := Header + ":" + size
@@ -60,6 +67,10 @@ func (hb *HoborConn) WriteMessage(msg []byte) error {
 	}
 	if n != len(header) {
 		return errors.New("header write mismatch")
+	}
+	_, err = hb.conn.Write([]byte(Delimiter))
+	if err != nil {
+		return err
 	}
 	n, err = hb.conn.Write(msg)
 	if err != nil {
