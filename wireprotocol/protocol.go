@@ -11,7 +11,6 @@ import (
 const (
 	Header     = "content-size"
 	Delimiter  = `\r\n\r\n`
-	hsize      = len(Header) + 4
 	bufferSize = 4096
 )
 
@@ -40,7 +39,7 @@ func (hb *HoborConn) ReadMessage() ([]byte, error) {
 	}
 	headerAndData := bytes.Split(buffer, []byte(Delimiter))
 	headerAndValue := bytes.Split(headerAndData[0], []byte(":"))
-	if string(headerAndValue[0]) != Header || !(len(headerAndValue[1]) > 0) {
+	if string(headerAndValue[0]) != Header && len(headerAndValue[1]) <= 0 {
 		return nil, errors.New("content size not sent in message")
 	}
 	size, err := strconv.Atoi(string(headerAndValue[1]))
@@ -80,4 +79,8 @@ func (hb *HoborConn) WriteMessage(msg []byte) error {
 		return errors.New("body write mismatch")
 	}
 	return nil
+}
+
+func (hb *HoborConn) Close() error {
+	return hb.conn.Close()
 }

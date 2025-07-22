@@ -1,5 +1,9 @@
-// Package hapi package to hold the home assistnt api spec
-package hapi
+/*
+Package encoder package to hold the home assistnt api spec
+Additionally defines all of the CBUOR tags, struct fieds,
+validation, and encode/decode of message types
+*/
+package encoder
 
 const (
 	API = `/api/`

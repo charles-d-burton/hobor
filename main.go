@@ -9,7 +9,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/charles-d-burton/hobor/hapi"
+	"github.com/charles-d-burton/hobor/encoder"
 	"github.com/fxamacker/cbor/v2"
 )
 
@@ -45,9 +45,9 @@ func main() {
 	client := httpClient()
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET "+hapi.API, func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("GET "+encoder.API, func(w http.ResponseWriter, r *http.Request) {
 		// TODO: Implement the logic to get from th ehome assistant API
-		req, err := http.NewRequest(http.MethodGet, coreAPI+hapi.API, nil)
+		req, err := http.NewRequest(http.MethodGet, coreAPI+encoder.API, nil)
 		if err != nil {
 			slog.Error("unable to createe http request", "error", err)
 		}
@@ -73,7 +73,7 @@ func main() {
 			return
 		}
 		slog.Info("message body", "body", string(data))
-		var hapiResponse hapi.GetAPIMessage
+		var hapiResponse encoder.GetAPIMessage
 		err = json.Unmarshal(data, &hapiResponse)
 		if err != nil {
 			slog.Error("unable to unmarshal response to API", "error", err)
