@@ -39,6 +39,12 @@ func (hb *HoborConn) ReadMessage() ([]byte, error) {
 		return nil, err
 	}
 	headerAndData := bytes.Split(buffer, []byte(Delimiter))
+	if len(headerAndData[0]) == 0 {
+		return nil, errors.New("invalid header")
+	}
+	if len(headerAndData[1]) == 0 {
+		return nil, errors.New("no payload sent with header")
+	}
 	headerAndValue := bytes.Split(headerAndData[0], []byte(":"))
 	if string(headerAndValue[0]) != Header && len(headerAndValue[1]) <= 0 {
 		return nil, errors.New("content size not sent in message")
@@ -49,6 +55,9 @@ func (hb *HoborConn) ReadMessage() ([]byte, error) {
 	}
 	if size > MessageSize {
 		return nil, errors.New("message size exceeds maximum of 64k")
+	}
+	if size <= len(headerAndData[1]) {
+		return headerAndData[1][:size], nil
 	}
 	size = size - len(headerAndData[1])
 	data := make([]byte, size)
