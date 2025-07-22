@@ -68,27 +68,27 @@ func (config *Config) validateComponent(component string) error {
 
 	elements := strings.Split(config.ConfigTopic, "/")
 	if len(elements) != 4 && len(elements) != 5 {
-		return errors.New("error:topic must be in the format: <discovery_prefix>/<component>/[<node_id>]/<object_id>/config")
+		return errors.New("topic must be in the format: <discovery_prefix>/<component>/[<node_id>]/<object_id>/config")
 	}
 
 	if elements[len(elements)-1] != "config" {
-		return errors.New(`error:last field of the topic must be the word "config"`)
+		return errors.New(`last field of the topic must be the word "config"`)
 	}
 
 	if elements[1] != component {
-		return errors.New(`error:second field of topic must be the word ` + component)
+		return errors.New(`second field of topic must be the word ` + component)
 	}
 	return nil
 }
 
 func (config *Config) validateAvailability() error {
 	if len(config.Availability) > 0 && config.AvailabilityTopic != "" {
-		return errors.New("error:avilability and availability topic are both set")
+		return errors.New("avilability and availability topic are both set")
 	}
 	if len(config.Availability) > 0 {
 		for _, av := range config.Availability {
 			if av.Topic == "" {
-				return errors.New("error:availability topic is empty")
+				return errors.New("availability topic is empty")
 			}
 		}
 	}

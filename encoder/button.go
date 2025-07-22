@@ -1,7 +1,6 @@
 package encoder
 
 import (
-	"encoding/json"
 	"errors"
 
 	"github.com/fxamacker/cbor/v2"
@@ -27,17 +26,10 @@ func (b *Button) GetTopic() ([]byte, error) {
 	return []byte(b.ConfigTopic), nil
 }
 
-func (b *Button) Marshal(es EncoderSwitch) ([]byte, error) {
+func (b *Button) MarshalCBOR() ([]byte, error) {
 	b.Platform = "button"
 	if b.CommandTopic == "" {
-		return nil, errors.New("error:command topic is empty")
+		return nil, errors.New("command topic is empty")
 	}
-	switch es {
-	case JSON:
-		return json.Marshal(b)
-	case CBOR:
-		return cbor.Marshal(b)
-	default:
-		return nil, errors.New(EncoderTypeError)
-	}
+	return cbor.Marshal(b)
 }

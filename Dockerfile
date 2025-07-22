@@ -7,6 +7,6 @@ WORKDIR /data
 
 COPY ./ .
 
-RUN go build -o /hobor
+RUN go build -tags excludetinygo -o /hobor
 
 ENTRYPOINT ["/hobor"]

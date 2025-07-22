@@ -1,7 +1,6 @@
 package encoder
 
 import (
-	"encoding/json"
 	"errors"
 
 	"github.com/fxamacker/cbor/v2"
@@ -45,7 +44,7 @@ func (sensor *Sensor) GetTopic() ([]byte, error) {
 	return []byte(sensor.ConfigTopic), nil
 }
 
-func (sensor *Sensor) Marshal(es EncoderSwitch) ([]byte, error) {
+func (sensor *Sensor) MarshalCBOR() ([]byte, error) {
 	err := sensor.validateAvailability()
 	if err != nil {
 		return nil, err
@@ -56,14 +55,7 @@ func (sensor *Sensor) Marshal(es EncoderSwitch) ([]byte, error) {
 	if sensor.Name == "" {
 		return nil, errors.New("name-undefined")
 	}
-	switch es {
-	case JSON:
-		return json.Marshal(sensor)
-	case CBOR:
-		return cbor.Marshal(sensor)
-	default:
-		return nil, errors.New(EncoderTypeError)
-	}
+	return cbor.Marshal(sensor)
 }
 
 /* This particular device has a lot of different possible permutations
@@ -84,13 +76,13 @@ type Temperature struct {
 
 func (t *Temperature) GetTopic() ([]byte, error) {
 	if t.Topic == "" {
-		return nil, errors.New("error:topic not set")
+		return nil, errors.New("topic not set")
 	}
 	return []byte(t.Topic), nil
 }
 
-func (t *Temperature) Marshal(es EncoderSwitch) ([]byte, error) {
-	return json.Marshal(t)
+func (t *Temperature) MarshalCBOR() ([]byte, error) {
+	return cbor.Marshal(t)
 }
 
 type Humidity struct {
@@ -100,13 +92,13 @@ type Humidity struct {
 
 func (h *Humidity) GetTopic() ([]byte, error) {
 	if h.Topic == "" {
-		return nil, errors.New("error:topic not set")
+		return nil, errors.New("topic not set")
 	}
 	return []byte(h.Topic), nil
 }
 
-func (h *Humidity) Marshal(es EncoderSwitch) ([]byte, error) {
-	return json.Marshal(h)
+func (h *Humidity) MarshalCBOR() ([]byte, error) {
+	return cbor.Marshal(h)
 }
 
 type TempAndHumidity struct {
@@ -117,11 +109,11 @@ type TempAndHumidity struct {
 
 func (th *TempAndHumidity) GetTopic() ([]byte, error) {
 	if th.Topic == "" {
-		return nil, errors.New("error:topic not set")
+		return nil, errors.New("topic not set")
 	}
 	return []byte(th.Topic), nil
 }
 
-func (th *TempAndHumidity) Marshal(es EncoderSwitch) ([]byte, error) {
-	return json.Marshal(th)
+func (th *TempAndHumidity) MarshalCBOR() ([]byte, error) {
+	return cbor.Marshal(th)
 }

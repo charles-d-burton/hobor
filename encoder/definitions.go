@@ -60,8 +60,15 @@ const (
  * Messages are insufficient
  */
 type Message interface {
-	Marshal(enc EncoderSwitch) ([]byte, error)
 	GetTopic() ([]byte, error)
+}
+
+type MessageJSON interface {
+	MarshalJSON() ([]byte, error)
+}
+
+type MessageCBOR interface {
+	MarshalCBOR() ([]byte, error)
 }
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
@@ -81,13 +88,6 @@ func randInt16() uint16 {
 	a += 1
 	return uint16(a)
 }
-
-type EncoderSwitch uint8
-
-const (
-	JSON EncoderSwitch = iota
-	CBOR
-)
 
 const (
 	EncoderTypeError = "invalid encoder type"

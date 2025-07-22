@@ -1,7 +1,6 @@
 package encoder
 
 import (
-	"encoding/json"
 	"errors"
 
 	"github.com/fxamacker/cbor/v2"
@@ -26,23 +25,16 @@ func (c *Camera) GetTopic() ([]byte, error) {
 	return []byte(c.ConfigTopic), nil
 }
 
-func (c *Camera) Marshal(es EncoderSwitch) ([]byte, error) {
+func (c *Camera) MarshalCBOR() ([]byte, error) {
 	if c.ImageEncoding != "" {
 		if c.ImageEncoding != "b64" {
-			return nil, errors.New("error:image encoding not set to b64")
+			return nil, errors.New("image encoding not set to b64")
 		}
 	}
 
 	if c.Topic == "" {
-		return nil, errors.New("error:subscribe topic is empty")
+		return nil, errors.New("subscribe topic is empty")
 	}
-	switch es {
-	case JSON:
-		return json.Marshal(c)
-	case CBOR:
 
-		return cbor.Marshal(c)
-	default:
-		return nil, errors.New(EncoderTypeError)
-	}
+	return cbor.Marshal(c)
 }

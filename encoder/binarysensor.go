@@ -1,7 +1,6 @@
 package encoder
 
 import (
-	"encoding/json"
 	"errors"
 
 	"github.com/fxamacker/cbor/v2"
@@ -56,23 +55,16 @@ type BinarySensorState struct {
 
 func (bss *BinarySensorState) GetTopic() ([]byte, error) {
 	if bss.StateTopic == "" {
-		return nil, errors.New("error: state topic is empty")
+		return nil, errors.New("state topic is empty")
 	}
 	return []byte(bss.StateTopic), nil
 }
 
-func (bss *BinarySensorState) Marshal(es EncoderSwitch) ([]byte, error) {
+func (bss *BinarySensorState) MarshalCBOR() ([]byte, error) {
 	switch bss.State {
 	case "ON", "OFF":
-		switch es {
-		case JSON:
-			return json.Marshal(bss)
-		case CBOR:
-			return cbor.Marshal(bss)
-		default:
-			return nil, errors.New(EncoderTypeError)
-		}
+		return cbor.Marshal(bss)
 	default:
-		return nil, errors.New("error:state is not ON or OFF")
+		return nil, errors.New("state is not ON or OFF")
 	}
 }
