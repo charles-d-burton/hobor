@@ -9,9 +9,10 @@ import (
 )
 
 const (
-	Header     = "content-size"
-	Delimiter  = `\r\n\r\n`
-	bufferSize = 4096
+	Header      = "content-size"
+	Delimiter   = `\r\n\r\n`
+	bufferSize  = 4096
+	MessageSize = 65_536
 )
 
 // type message struct{}
@@ -46,6 +47,9 @@ func (hb *HoborConn) ReadMessage() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	if size > MessageSize {
+		return nil, errors.New("message size exceeds maximum of 64k")
+	}
 	size = size - len(headerAndData[1])
 	data := make([]byte, size)
 	_, err = hb.conn.Read(data)
@@ -59,6 +63,9 @@ func (hb *HoborConn) ReadMessage() ([]byte, error) {
 // and then the corresponding data
 func (hb *HoborConn) WriteMessage(msg []byte) error {
 	size := strconv.Itoa(len(msg))
+	if len(msg) > MessageSize {
+		return errors.New("message size exceeds maximum of 64k")
+	}
 	header := Header + ":" + size
 	n, err := hb.conn.Write([]byte(header))
 	if err != nil {
