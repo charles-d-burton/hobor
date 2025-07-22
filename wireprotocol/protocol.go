@@ -3,28 +3,27 @@ package wireprotocol
 
 import (
 	"bytes"
+	"encoding/binary"
 	"errors"
 	"io"
-	"strconv"
 )
 
 const (
-	Header      = "content-size"
-	Delimiter   = `\r\n\r\n`
-	bufferSize  = 4096
+	// Header     = "content-size:"
+	ContentSize = 4 //The number of bytes in a uin32
+	// Delimiter   = `\r\n\r\n`
 	MessageSize = 65_536
 )
 
 // type message struct{}
 
 type HoborConn struct {
-	conn   io.ReadWriteCloser
-	closed bool
+	conn io.ReadWriteCloser
 }
 
 func NewHoborConn(conn io.ReadWriteCloser) (*HoborConn, error) {
 	if conn != nil {
-		return &HoborConn{conn: conn, closed: false}, nil
+		return &HoborConn{conn: conn}, nil
 	}
 	return nil, errors.New("connection not set")
 }
@@ -32,52 +31,47 @@ func NewHoborConn(conn io.ReadWriteCloser) (*HoborConn, error) {
 // ReadMessage reads the data from the connection in.
 // Probably needs some thought around message size limitations
 func (hb *HoborConn) ReadMessage() ([]byte, error) {
-	buffer := make([]byte, bufferSize)
+	contentSize := make([]byte, ContentSize)
 	// not tracking how many bytes read since it is fixed
-	_, err := hb.conn.Read(buffer)
+	n, err := hb.conn.Read(contentSize)
 	if err != nil {
 		return nil, err
 	}
-	headerAndData := bytes.Split(buffer, []byte(Delimiter))
-	if len(headerAndData[0]) == 0 {
-		return nil, errors.New("invalid header")
+	if n != ContentSize {
+		return nil, errors.New("failed to read first 4 bytes of data stream for size computation")
 	}
-	if len(headerAndData[1]) == 0 {
-		return nil, errors.New("no payload sent with header")
-	}
-	headerAndValue := bytes.Split(headerAndData[0], []byte(":"))
-	if string(headerAndValue[0]) != Header && len(headerAndValue[1]) <= 0 {
-		return nil, errors.New("content size not sent in message")
-	}
-	size, err := strconv.Atoi(string(headerAndValue[1]))
+	var size int32
+	err = binary.Read(bytes.NewReader(contentSize), binary.BigEndian, &size)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("unable to convert first 4 bytes into size integer")
 	}
 	if size > MessageSize {
 		return nil, errors.New("message size exceeds maximum of 64k")
 	}
-	if size <= len(headerAndData[1]) {
-		return headerAndData[1][:size], nil
-	}
-	size = size - len(headerAndData[1])
-	data := make([]byte, size)
-	_, err = hb.conn.Read(data)
+	payload := make([]byte, size)
+	n, err = hb.conn.Read(payload)
 	if err != nil {
 		return nil, err
 	}
-	return append(headerAndData[1], data...), nil
+	if n != int(size) {
+		return nil, errors.New("failed to read all data from socket")
+	}
+	return payload, nil
 }
 
 // WriteMessage writes a heeader with the calculated message size
 // and then the corresponding data
 func (hb *HoborConn) WriteMessage(msg []byte) error {
-	size := strconv.Itoa(len(msg))
 	if len(msg) > MessageSize {
 		return errors.New("message size exceeds maximum of 64k")
 	}
-	payload := []byte(Header + ":" + size)
-	payload = append(payload, []byte(Delimiter)...)
-	payload = append(payload, msg...)
+	msgSizeArr := make([]byte, ContentSize)
+	msgSize := uint32(len(msg))
+	binary.BigEndian.PutUint32(msgSizeArr, msgSize)
+
+	payload := make([]byte, ContentSize+len(msg))
+	copy(payload, msgSizeArr)
+	copy(payload[ContentSize-1:], msg)
 	n, err := hb.conn.Write(payload)
 	if err != nil {
 		return err
