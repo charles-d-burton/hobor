@@ -75,24 +75,15 @@ func (hb *HoborConn) WriteMessage(msg []byte) error {
 	if len(msg) > MessageSize {
 		return errors.New("message size exceeds maximum of 64k")
 	}
-	header := Header + ":" + size
-	n, err := hb.conn.Write([]byte(header))
+	payload := []byte(Header + ":" + size)
+	payload = append(payload, []byte(Delimiter)...)
+	payload = append(payload, msg...)
+	n, err := hb.conn.Write(payload)
 	if err != nil {
 		return err
 	}
-	if n != len(header) {
-		return errors.New("header write mismatch")
-	}
-	_, err = hb.conn.Write([]byte(Delimiter))
-	if err != nil {
-		return err
-	}
-	n, err = hb.conn.Write(msg)
-	if err != nil {
-		return err
-	}
-	if n != len(msg) {
-		return errors.New("body write mismatch")
+	if n != len(payload) {
+		return errors.New("unable to write all data to connection")
 	}
 	return nil
 }
