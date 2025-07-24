@@ -72,7 +72,10 @@ func (hb *HoborConn) WriteMessage(msg []byte) error {
 	if len(msg) > MaxMessageSize {
 		return errors.New("message size exceeds maximum of 64k")
 	}
-	return hb.writeMessage(msg)
+	msgSize := uint32(len(msg))
+	payload := intToBytes(msgSize)
+	payload = append(payload, msg...)
+	return hb.writePayload(payload)
 }
 
 func (hb *HoborConn) WriteControlMessage(cm ControlMessage) error {
@@ -124,13 +127,6 @@ func (hb *HoborConn) readMessage(size uint32) ([]byte, error) {
 		return nil, errors.New("invalid message break received")
 	}
 	return payload, nil
-}
-
-func (hb *HoborConn) writeMessage(msg []byte) error {
-	msgSize := uint32(len(msg))
-	payload := intToBytes(msgSize)
-	payload = append(payload, msg...)
-	return hb.writePayload(payload)
 }
 
 func (hb *HoborConn) writePayload(msg []byte) error {
