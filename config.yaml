@@ -8,4 +8,5 @@ arch:
   - amd64
 ports:
   9007/tcp: 9007
+  2883/tcp: 2883
 homeassistant_api: true
